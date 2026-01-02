@@ -1,4 +1,4 @@
-# **LDAP \+ FreeRADIUS \+ Unifi 企业级认证方案**
+# **LDAP \+ FreeRADIUS \+ Unifi 企业级认证方案 (v1.2)**
 
 **⚠️ 安全提示 / Security Notice**
 
