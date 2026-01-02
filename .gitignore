@@ -1,0 +1,31 @@
+Windows 系统文件
+
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+Mac 系统文件 (防止合作者有 Mac 用户)
+
+.DS_Store
+
+IDE 配置文件
+
+.idea/
+.vscode/
+*.swp
+
+Docker 产生的临时数据 (不建议上传数据库文件)
+
+mysql_data/
+ldap_data/
+openldap/
+slapd.d/
+
+包含敏感信息的本地环境配置
+
+.env
+
+FreeRADIUS 可能生成的临时文件
+
+freeradius/config/radacct/
+*.log

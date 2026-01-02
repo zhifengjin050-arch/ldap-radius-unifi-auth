@@ -1,0 +1,35 @@
+version: '3'
+services:
+  go-ldap-admin:
+    image: registry.cn-hangzhou.aliyuncs.com/eryajf/go-ldap-admin
+    ports:
+      - 8888:8888
+    environment:
+      WAIT_HOSTS: mysql:3306, openldap:389
+    depends_on:
+      - mysql
+      - openldap
+
+  mysql:
+    image: registry.cn-hangzhou.aliyuncs.com/eryajf/mysql:8.3
+    environment:
+      # 【安全警告】请务必在生产环境中修改此密码
+      MYSQL_ROOT_PASSWORD: change_this_strong_password
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+
+  openldap:
+    image: registry.cn-hangzhou.aliyuncs.com/eryajf/openldap:1.4.1
+    environment:
+      # 如有特定环境变量请在此添加
+      LDAP_ADMIN_PASSWORD: change_this_strong_password
+    volumes:
+      - ./ldap_data:/var/lib/ldap
+      - ./slapd.d:/etc/ldap/slapd.d
+
+  freeradius:
+    image: freeradius/freeradius-server:latest
+    network_mode: host
+    volumes:
+       - ./freeradius/config:/etc/raddb:rw
+    restart: always
