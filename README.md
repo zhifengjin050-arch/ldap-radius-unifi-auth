@@ -1,119 +1,162 @@
-# **ldap-radius-unifi-auth**
+# **LDAP \+ FreeRADIUS \+ Unifi 企业级认证方案**
 
 **⚠️ 安全提示 / Security Notice**
 
-本文档及示例配置文件中涉及的密码（如 123456）、密钥及 IP 地址仅作为演示使用。  
-在生产环境部署时，请务必修改为强密码，严格限制防火墙规则，并妥善保管 clients.conf 中的共享密钥。
+生产环境请务必修改默认密码（如 123456），并妥善保管 clients.conf 中的共享密钥。  
+本文档基于 Docker Compose 部署，适用于 1Panel、群晖或纯 Linux 环境。
 
-## **📖 项目简介 (Introduction)**
+## **📖 项目简介**
 
-本项目提供了一套**开箱即用**的企业级网络接入认证解决方案。通过 Docker 容器化编排，深度整合了 **OpenLDAP**（身份源）、**FreeRADIUS**（认证服务）与 **Unifi 网络控制器**。
+本项目提供一套完整的企业级无线网络认证方案。通过 **Go-Ldap-Admin** 管理用户，**FreeRADIUS** 处理 802.1X 认证，配合 **Unifi** 控制器实现“一人一号”登录及动态 VLAN 下发。
 
-**核心功能：**
+**核心优势：**
 
-* 🚀 **统一身份管理**：集成 Go-Ldap-Admin 可视化面板，轻松管理员工账号与部门架构。  
-* 🛡️ **802.1X 企业级认证**：取代传统的静态 WiFi 密码，实现“一人一号”的安全接入机制。  
-* 🔀 **动态 VLAN 下发**：支持根据 LDAP 用户属性（如部门），自动将用户划分至不同的网络 VLAN，实现网络逻辑隔离。
+* **可视化管理**：使用 Web 界面管理组织架构和员工账号。  
+* **安全接入**：WPA2-Enterprise 企业级认证，杜绝万能钥匙共享 WiFi。  
+* **动态 VLAN**：根据部门（如研发、市场）自动划分网络 VLAN，无需多 SSID。
 
-## **📑 目录 (Table of Contents)**
+## **🛠️ 部署步骤**
 
-* [环境拓扑](https://www.google.com/search?q=%23-%E7%8E%AF%E5%A2%83%E6%8B%93%E6%89%91)  
-* [快速开始](https://www.google.com/search?q=%23-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B)  
-  * [1\. 部署身份源 (LDAP)](https://www.google.com/search?q=%231-%E9%83%A8%E7%BD%B2%E8%BA%AB%E4%BB%BD%E6%BA%90-ldap)  
-  * [2\. 部署认证服务 (Radius)](https://www.google.com/search?q=%232-%E9%83%A8%E7%BD%B2%E8%AE%A4%E8%AF%81%E6%9C%8D%E5%8A%A1-radius)  
-* [核心配置指南](https://www.google.com/search?q=%23-%E6%A0%B8%E5%BF%83%E9%85%8D%E7%BD%AE%E6%8C%87%E5%8D%97)  
-  * [对接 LDAP](https://www.google.com/search?q=%23%E5%AF%B9%E6%8E%A5-ldap)  
-  * [配置 Unifi 客户端](https://www.google.com/search?q=%23%E9%85%8D%E7%BD%AE-unifi-%E5%AE%A2%E6%88%B7%E7%AB%AF)  
-* [进阶：动态 VLAN 配置](https://www.google.com/search?q=%23-%E8%BF%9B%E9%98%B6%E5%8A%A8%E6%80%81-vlan-%E9%85%8D%E7%BD%AE)  
-* [截图预览](https://www.google.com/search?q=%23-%E6%88%AA%E5%9B%BE%E9%A2%84%E8%A7%88)  
-* [故障排查](https://www.google.com/search?q=%23-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5)
+### **第一步：启动基础服务 (LDAP)**
 
-## **🏗️ 环境拓扑**
-
-| 组件 | 镜像/服务 | 作用 | 端口 |
-| :---- | :---- | :---- | :---- |
-| **IAM (身份源)** | eryajf/openldap:1.4.1 | 存储用户账户、组织架构数据 | 389 |
-| **Admin UI** | eryajf/go-ldap-admin | LDAP 的可视化 Web 管理后台 | 8888 |
-| **Database** | eryajf/mysql:8.3 | Admin UI 的后端存储 | 3306 |
-| **AAA Server** | freeradius/freeradius-server | 处理认证、授权、计费请求 | 1812/udp |
-| **NAS (接入)** | Unifi Controller / AP | 发起认证请求的网络设备 | \- |
-
-## **⚡ 快速开始**
-
-### **1\. 部署身份源 (LDAP)**
-
-1. 启动 LDAP 及管理面板服务：  
+1. 确保本地有 docker-compose.yml 文件。  
+2. 启动 LDAP 和管理后台：  
    docker-compose up \-d go-ldap-admin mysql openldap
 
-2. **初始化配置**：  
-   * 访问管理面板：http://Server-IP:8888 (默认账号: admin / 默认密码: \*\*\*\*\*\*)。  
-   * **关键步骤**：进入配置中心，将密码加密方式修改为 **clear (明文)**。这是 FreeRADIUS 读取 LDAP 密码进行验证的前提条件。
+3. **配置加密方式（关键）**：  
+   * 访问管理后台 http://\<你的IP\>:8888 (默认账号 admin / 密码 123456)。  
+   * 进入 **配置中心**，将“用户密码加密方式”修改为 **clear (明文)**。  
+   * *原因：FreeRADIUS 需要读取明文或特定哈希来验证 PAP/CHAP 协议。*  
+4. **创建用户**：  
+   * 在“用户管理”中新建测试用户，记住 Uid (用户名) 和 Password。
 
-### **2\. 部署认证服务 (Radius)**
+### **第二步：配置 FreeRADIUS**
 
-FreeRADIUS 建议使用 **Host 网络模式** 部署。
+FreeRADIUS 配置较复杂，建议先临时启动容器提取默认配置，再进行修改。
 
-1. 启动容器并提取配置（首次运行）：  
-   \# 临时启动  
-   docker-compose up \-d freeradius  
-   \# 拷贝配置  
-   docker cp freeradius:/etc/raddb ./freeradius/config  
-   \# 修正权限 (重要：容器内用户ID为100)  
-   sudo chown \-R 100:101 ./freeradius/config
+#### **1\. 提取配置文件**
 
-2. 修改 docker-compose.yml 挂载 volumes，然后重启服务。
+\# 临时启动  
+docker-compose up \-d freeradius
 
-## **⚙️ 核心配置指南**
+\# 将容器内配置拷贝到本地 ./freeradius/config 目录  
+docker cp freeradius:/etc/raddb ./freeradius/config
 
-以下操作均在宿主机 ./freeradius/config 目录中进行。
+\# 【非常重要】修正权限 (容器内 radius 用户 ID 为 100\)  
+\# 如果是 Linux/Mac 请执行：  
+sudo chown \-R 100:101 ./freeradius/config
 
-### **对接 LDAP**
+#### **2\. 修改配置对接 LDAP**
 
-编辑 mods-available/ldap，填入 LDAP Server IP 和管理员账号，并建立软链接：
+以下文件均在 ./freeradius/config/ 目录下修改：
 
-ln \-s ../mods-available/ldap mods-enabled/ldap
+* **编辑 mods-available/ldap**：  
+  ldap {  
+      server \= "192.168.x.x"  \# 宿主机真实IP (不要填 127.0.0.1)  
+      identity \= "cn=admin,dc=eryajf,dc=net"  
+      password \= "admin\_password"  
+      base\_dn \= "dc=eryajf,dc=net"
 
-### **配置 Unifi 客户端**
+      update {  
+          \# 开启密码头支持  
+          control:Password-With-Header \+= 'userPassword'  
+      }  
+  }
 
-编辑 clients.conf，添加 Unifi 控制器或 AP 的网段信息：
+* **启用模块**：  
+  \# 在 mods-enabled 目录下建立软链接  
+  cd mods-enabled  
+  ln \-s ../mods-available/ldap ldap
 
-client 192.168.0.0/24 {  
-    secret \= your\_secure\_key  \# 需与 Unifi 设置一致  
-    shortname \= unifi\_ap  
+#### **3\. 开启 Unifi 接入 (clients.conf)**
+
+编辑 clients.conf，允许 Unifi 设备连接：
+
+client unifi\_ac {  
+    ipaddr \= 0.0.0.0/0      \# 生产环境建议限制为 AP 的 IP 段  
+    secret \= testing123     \# 【重要】Unifi 控制器里要填这个  
 }
 
-### **Unifi 控制器设置**
+#### **4\. 延长证书有效期**
 
-1. 进入 Settings \-\> Profiles \-\> RADIUS.  
-2. 新建 Profile，填入 FreeRADIUS 服务器 IP 和 Secret。  
-3. 在 WiFi 设置中，Security 选择 WPA Enterprise。
+默认证书只有 60 天，建议修改为 10 年。
+
+* 修改 certs/ca.cnf, certs/server.cnf 中的 default\_days \= 3650。  
+* 进入容器重新生成证书：  
+  docker exec \-it freeradius /etc/raddb/certs/bootstrap
+
+  *(或者删除 certs 下的旧文件，重启容器让其自动生成)*
+
+### **第三步：配置 Unifi 控制器**
+
+1. 登录 Unifi Network 后台。  
+2. 进入 **Settings \-\> Profiles \-\> RADIUS**。  
+3. **Create New RADIUS Profile**：  
+   * **IP Address**: 填宿主机 IP。  
+   * **Port**: 1812。  
+   * **Shared Secret**: 填 clients.conf 里设置的密码 (如 testing123)。  
+4. 进入 **WiFi 设置**：  
+   * **Security**: WPA2 Enterprise。  
+   * **RADIUS Profile**: 选择刚才创建的 Profile。
 
 ## **🚀 进阶：动态 VLAN 配置**
 
-实现根据 LDAP 用户属性自动将用户分配到不同 VLAN。
+实现根据 LDAP 用户属性（如部门字段 businessCategory）自动分配 VLAN。
 
-1. **开启 EAP 透传**: 修改 mods-available/eap \-\> use\_tunneled\_reply \= yes。  
-2. **属性映射**: 修改 mods-available/ldap，将 businessCategory 映射到 Tmp-String-0。  
-3. **编写逻辑**: 在 sites-available/inner-tunnel 的 post-auth 中：
+### **1\. 开启 EAP 透传**
 
-if (control:Tmp-String-0 \== "it") {  
-    update outer.session-state {  
-        \&reply:Tunnel-Type := VLAN  
-        \&reply:Tunnel-Medium-Type := IEEE-802  
-        \&reply:Tunnel-Private-Group-Id := "10"  
-    }  
+编辑 mods-available/eap，找到 peap 块：
+
+peap {  
+    use\_tunneled\_reply \= yes  \# 确保此处为 yes  
 }
 
-## **📸 截图预览**
+### **2\. 映射 LDAP 属性**
 
-### **LDAP 配置**
+编辑 mods-available/ldap，将 LDAP 字段映射到 FreeRADIUS 临时变量：
 
-### **用户管理**
+update {  
+    control:Password-With-Header \+= 'userPassword'  
+    \# 将 businessCategory 映射到 Tmp-String-0  
+    request:Tmp-String-0 := 'businessCategory'  
+}
 
-### **Unifi Radius 配置**
+### **3\. 编写判断逻辑**
 
-## **🔧 故障排查**
+编辑 sites-available/inner-tunnel，在 post-auth 块中添加：
 
-* **容器无法启动**：检查 ./freeradius/config 目录权限是否为 100:101。  
-* **认证失败**：使用 docker logs freeradius 查看日志，或进入容器运行 freeradius \-X 开启调试模式。  
-* **VLAN 未生效**：检查交换机端口是否开启 Trunk 模式，并确认 AP 支持动态 VLAN。
+post-auth {  
+    \# 逻辑：如果 LDAP 属性为 "it"，则下发 VLAN 10  
+    if (request:Tmp-String-0 \== "it") {  
+        update reply {  
+            Tunnel-Type \= VLAN  
+            Tunnel-Medium-Type \= IEEE-802  
+            Tunnel-Private-Group-Id \= "10"  
+        }  
+    }  
+    \# 默认 VLAN  
+    else {  
+        update reply {  
+            Tunnel-Type \= VLAN  
+            Tunnel-Medium-Type \= IEEE-802  
+            Tunnel-Private-Group-Id \= "1"  
+        }  
+    }  
+    \# ... 其他原有配置  
+}
+
+## **🔧 常用调试命令**
+
+如果认证失败，请停止当前容器，使用 **Debug 模式** 启动，查看详细日志：
+
+\# 停止正常运行的容器  
+docker stop freeradius
+
+\# 启动调试模式 (注意替换路径)  
+docker run \-it \--rm \--network host \\  
+  \-v $(pwd)/freeradius/config:/etc/raddb \\  
+  freeradius/freeradius-server:latest \-X
+
+* **测试连接工具** (radtest)：  
+  \# 格式: radtest \<用户名\> \<密码\> \<RadiusIP\> \<端口\> \<Secret\>  
+  radtest testuser 123456 127.0.0.1 0 testing123  
