@@ -1,7 +1,9 @@
-![企业无线认证与动态 VLAN](docs/showcase/cover.svg)
+<picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/hero-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/hero-light.svg"><img src="docs/showcase/hero-light.svg" alt="LDAP / RADIUS / UniFi · 统一身份驱动的企业无线接入" width="100%"></picture>
 
 <!-- engineering-guide:start -->
-## 🧭 工程导读 · 从场景到实现
+<a id="-工程导读--从场景到实现"></a>
+<h2><picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/section-01-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/section-01-light.svg"><img src="docs/showcase/section-01-light.svg" alt="工程导读 · 从场景到实现" width="100%"></picture></h2>
+
 
 **统一身份驱动的无线接入集成**。通过 LDAP 管理账号，通过 RADIUS 完成网络认证，并以组织属性控制 VLAN 分配，减少账号与无线接入策略的割裂。
 
@@ -24,7 +26,9 @@ flowchart LR
 
 
 
-## ✨ 项目速览
+<a id="-项目速览"></a>
+<h2><picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/section-02-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/section-02-light.svg"><img src="docs/showcase/section-02-light.svg" alt="项目速览" width="100%"></picture></h2>
+
 
 - 通过 Go-Ldap-Admin 管理账号与组织信息，连接 LDAP 身份源与网络认证流程。
 - FreeRADIUS 对接 UniFi 的企业无线接入，将统一账号用于 802.1X 认证场景。
@@ -44,7 +48,9 @@ flowchart LR
 生产环境请务必修改默认密码（如 123456），并妥善保管 clients.conf 中的共享密钥。  
 本文档基于 Docker Compose 部署，适用于 1Panel、群晖或纯 Linux 环境。
 
-## **📖 项目简介**
+<a id="-项目简介"></a>
+<h2><picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/section-03-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/section-03-light.svg"><img src="docs/showcase/section-03-light.svg" alt="项目简介" width="100%"></picture></h2>
+
 
 本项目提供一套完整的企业级无线网络认证方案。通过 **Go-Ldap-Admin** 管理用户，**FreeRADIUS** 处理 802.1X 认证，配合 **Unifi** 控制器实现“一人一号”登录及动态 VLAN 下发。
 
@@ -54,7 +60,9 @@ flowchart LR
 * **安全接入**：WPA2-Enterprise 企业级认证，杜绝万能钥匙共享 WiFi。  
 * **动态 VLAN**：根据部门（如研发、市场）自动划分网络 VLAN，无需多 SSID。
 
-## **🛠️ 部署步骤**
+<a id="-部署步骤"></a>
+<h2><picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/section-04-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/section-04-light.svg"><img src="docs/showcase/section-04-light.svg" alt="部署步骤" width="100%"></picture></h2>
+
 
 ### **第一步：启动基础服务 (LDAP)**
 
@@ -138,7 +146,9 @@ client unifi\_ac {
    * **Security**: WPA2 Enterprise。  
    * **RADIUS Profile**: 选择刚才创建的 Profile。
 
-## **🚀 进阶：动态 VLAN 配置**
+<a id="-进阶动态-vlan-配置"></a>
+<h2><picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/section-05-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/section-05-light.svg"><img src="docs/showcase/section-05-light.svg" alt="进阶：动态 VLAN 配置" width="100%"></picture></h2>
+
 
 实现根据 LDAP 用户属性（如部门字段 businessCategory）自动分配 VLAN。
 
@@ -184,7 +194,9 @@ post-auth {
     \# ... 其他原有配置  
 }
 
-## **🔧 常用调试命令**
+<a id="-常用调试命令"></a>
+<h2><picture><source media="(prefers-color-scheme: dark)" srcset="docs/showcase/section-06-dark.svg"><source media="(prefers-color-scheme: light)" srcset="docs/showcase/section-06-light.svg"><img src="docs/showcase/section-06-light.svg" alt="常用调试命令" width="100%"></picture></h2>
+
 
 如果认证失败，请停止当前容器，使用 **Debug 模式** 启动，查看详细日志：
 
