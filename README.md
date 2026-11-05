@@ -1,3 +1,18 @@
+![企业无线认证与动态 VLAN](docs/showcase/cover.svg)
+
+## ✨ 项目速览
+
+- 通过 Go-Ldap-Admin 管理账号与组织信息，连接 LDAP 身份源与网络认证流程。
+- FreeRADIUS 对接 UniFi 的企业无线接入，将统一账号用于 802.1X 认证场景。
+- 依据 LDAP 部门属性返回 VLAN 信息，附容器部署、配置映射与认证排障说明。
+
+### 🧭 源码阅读路线
+
+- **[服务编排](docker-compose.yml)**
+- **[配置截图](assets/)**
+
+---
+
 # **LDAP \+ FreeRADIUS \+ Unifi 企业级认证方案 (v1.2)**
 
 **⚠️ 安全提示 / Security Notice**
