@@ -1,5 +1,29 @@
 ![企业无线认证与动态 VLAN](docs/showcase/cover.svg)
 
+<!-- engineering-guide:start -->
+## 🧭 工程导读 · 从场景到实现
+
+**统一身份驱动的无线接入集成**。通过 LDAP 管理账号，通过 RADIUS 完成网络认证，并以组织属性控制 VLAN 分配，减少账号与无线接入策略的割裂。
+
+```mermaid
+flowchart LR
+  N0["LDAP 账号与部门"]
+  N1["FreeRADIUS 认证"]
+  N2["属性映射"]
+  N3["UniFi 接入"]
+  N4["VLAN 分配"]
+  N0 --> N1 --> N2 --> N3 --> N4
+```
+
+- Go-Ldap-Admin、MySQL、OpenLDAP 与 FreeRADIUS 通过 Compose 组织，UniFi 作为外部网络接入设备。
+- 身份验证和 VLAN 授权是两个阶段，应先验证账号可认证，再验证返回属性是否被 UniFi 接收。
+- 认证配置挂载到本地目录，容器启动和配置准备有先后关系，不能只检查容器是否在运行。
+
+📖 **[阅读完整工程导读](docs/PROJECT_GUIDE.md)**：源码路径、最短运行路线、演示验收与当前边界。
+<!-- engineering-guide:end -->
+
+
+
 ## ✨ 项目速览
 
 - 通过 Go-Ldap-Admin 管理账号与组织信息，连接 LDAP 身份源与网络认证流程。
@@ -40,8 +64,8 @@
 
 3. **配置加密方式（关键）**：  
    * 访问管理后台 http://\<你的IP\>:8888 (默认账号 admin / 密码 123456)。  
-   * 进入 **配置中心**，将“用户密码加密方式”修改为 **clear (明文)**。  
-   * *原因：FreeRADIUS 需要读取明文或特定哈希来验证 PAP/CHAP 协议。*  
+   * 进入 **配置中心**，先确认所选 EAP / 内部认证协议支持的密码存储形式，按组织安全策略配置；不统一要求使用明文。  
+   * *不同认证协议对密码存储形式有不同要求，应按实际协议核对兼容性。*  
 4. **创建用户**：  
    * 在“用户管理”中新建测试用户，记住 Uid (用户名) 和 Password。
 
@@ -94,9 +118,9 @@ client unifi\_ac {
 
 #### **4\. 延长证书有效期**
 
-默认证书只有 60 天，建议修改为 10 年。
+证书有效期应依据组织策略设置，并配置终端 CA 验证与到期轮换；以下文件用于调整参数，不建议直接将有效期统一改为 10 年。
 
-* 修改 certs/ca.cnf, certs/server.cnf 中的 default\_days \= 3650。  
+* 修改 certs/ca.cnf, certs/server.cnf 中的 default\_days（按组织证书策略设置）。  
 * 进入容器重新生成证书：  
   docker exec \-it freeradius /etc/raddb/certs/bootstrap
 
