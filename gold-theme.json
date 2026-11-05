@@ -7,32 +7,38 @@
     {
       "id": "section-01",
       "title": "工程导读 · 从场景到实现",
-      "caption": "01 / PROJECT DOCUMENTATION"
+      "caption": "01 / PROJECT DOCUMENTATION",
+      "icon": "guide"
     },
     {
       "id": "section-02",
       "title": "项目速览",
-      "caption": "02 / PROJECT DOCUMENTATION"
+      "caption": "02 / PROJECT DOCUMENTATION",
+      "icon": "features"
     },
     {
       "id": "section-03",
       "title": "项目简介",
-      "caption": "03 / PROJECT DOCUMENTATION"
+      "caption": "03 / PROJECT DOCUMENTATION",
+      "icon": "features"
     },
     {
       "id": "section-04",
       "title": "部署步骤",
-      "caption": "04 / PROJECT DOCUMENTATION"
+      "caption": "04 / PROJECT DOCUMENTATION",
+      "icon": "deploy"
     },
     {
       "id": "section-05",
       "title": "进阶：动态 VLAN 配置",
-      "caption": "05 / PROJECT DOCUMENTATION"
+      "caption": "05 / PROJECT DOCUMENTATION",
+      "icon": "config"
     },
     {
       "id": "section-06",
       "title": "常用调试命令",
-      "caption": "06 / PROJECT DOCUMENTATION"
+      "caption": "06 / PROJECT DOCUMENTATION",
+      "icon": "operations"
     }
   ]
 }
